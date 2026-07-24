@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
-import { createAuth } from "../lib/auth.ts";
+import jwt from "jsonwebtoken";
+import { User } from "../models/user/user.model.ts";
 
 export const verifyRole = (roles: string[]) => {
     return async (
@@ -7,51 +8,50 @@ export const verifyRole = (roles: string[]) => {
         res: Response,
         next: NextFunction
     ) => {
-
         try {
-            const auth = createAuth();
+            const accessToken = req.headers.authorization?.replace("Bearer ", "");
 
-            const headers = new Headers();
-
-            Object.entries(req.headers).forEach(([key, value]) => {
-                if (Array.isArray(value)) {
-                    value.forEach((v) => headers.append(key, v));
-                } else if (value !== undefined) {
-                    headers.set(key, value);
-                }
-            });
-
-
-            const session = await auth.api.getSession({
-                headers
-            });
-
-
-            if (!session) {
+            if (!accessToken) {
                 return res.status(401).json({
-                    message: "Unauthorized"
+                    success: false,
+                    message: "Unauthorized",
                 });
             }
 
+            const decoded = jwt.verify(
+                accessToken,
+                process.env.ACCESS_TOKEN_SECRET!
+            ) as {
+                userId: string;
+            };
 
-            const user = session.user;
+            // Database থেকে user খুঁজে বের করা
+            const userInfo = await User.findById(decoded.userId);
 
+            if (!userInfo) {
+                return res.status(401).json({
+                    success: false,
+                    message: "User not found",
+                });
+            }
 
-            if (!roles.includes(user.role)) {
+            // Database-এর role check
+            if (!roles.includes(userInfo.role)) {
                 return res.status(403).json({
-                    message: "Forbidden Access "
+                    success: false,
+                    message: "Forbidden Access",
                 });
             }
 
-
-            // attach user for controller use
-            req.user = user;
+            // Controller এ userInfo info use করার জন্য
+            req.user = userInfo;
 
             next();
 
         } catch (error) {
-            return  res.status(500).json({
-                message: 'Something went wrong'
+            return res.status(401).json({
+                success: false,
+                message: "Invalid or expired access token",
             });
         }
     };

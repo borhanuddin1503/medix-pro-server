@@ -2,7 +2,6 @@ import express, { type Express, type Request, type Response } from 'express';
 import { envConfig } from './lib/env-config.ts';
 import cors from 'cors'
 import dbConnect from './lib/dbConnect.ts';
-import { toNodeHandler } from 'better-auth/node';
 import { createAuth } from './lib/auth.ts';
 import authRoutes from './routes/auth.routes.ts'
 import doctorApplyRoutes from './routes/doctor.route.ts'
@@ -18,8 +17,6 @@ app.use(cors({
 app.use(express.json());
 
 await dbConnect();
-const auth = createAuth();
-app.all('/api/auth/{*any}', toNodeHandler(auth));
 
 
 // auth routes

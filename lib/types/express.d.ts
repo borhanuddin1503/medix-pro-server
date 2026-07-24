@@ -1,9 +1,9 @@
-import type { User } from "better-auth";
+import type { IUser } from "./user.ts";
 
 declare global {
     namespace Express {
         interface Request {
-            user?: User;
+            user?: IUser;
         }
     }
 }

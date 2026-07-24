@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { emailOTP } from 'better-auth/plugins';
-import nodemailer from "nodemailer";
 envConfig();
 
 const getDb = () => {
@@ -30,25 +29,11 @@ export const createAuth = () => betterAuth({
         emailOTP({
             async sendVerificationOTP({ email, otp, type }) {
                 // Create a transporter using nodemailer SMTP
-                const transporter = nodemailer.createTransport({
-                    host: process.env.SMTP_HOST,
-                    port: parseInt(process.env.SMTP_PORT as string),
-                    secure: false, // use STARTTLS (upgrade connection to TLS after connecting)
-                    auth: {
-                        user: process.env.SMTP_USER,
-                        pass: process.env.SMTP_PASS,
-                    },
-                });
+              
                 if (type === "sign-in") {
                     // Send the OTP for sign in
                 } else if (type === "email-verification") {
-                    const info = await transporter.sendMail({
-                        from: process.env.FROM_EMAIL,
-                        to: email,
-                        subject: "Email Verification for medix-pro", // subject line
-                        text: `Your verification code is: ${otp}`, // plain text body
-                        html: `<p style="font-family: Arial, sans-serif; font-size: 16px; color: green; text-align: center;">Your verification code is: <br><strong>${otp}</strong></p>`, // HTML body
-                    });
+                  
                 } else {
                     // Send the OTP for password reset
                     const info = await transporter.sendMail({
@@ -71,5 +56,5 @@ export const createAuth = () => betterAuth({
             }
         }
     },
-    trustedOrigins: [process.env.CLIENT_URL!]
+    trustedOrigins: [process.env.CLIENT_URL!],
 });

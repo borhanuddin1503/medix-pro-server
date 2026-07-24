@@ -5,9 +5,11 @@ import { ObjectId } from "mongodb";
 export async function applyDoctor(req: Request, res: Response) {
     try {
         const information = req.body;
-        const userId = req.user?.id;
+        const userId = req.user?._id;
         const userEmail = req.user?.email;
-        const isEmailVerified = req.user?.emailVerified;
+        const isEmailVerified = req.user?.isVerified;
+        
+        console.log(userEmail, 'is trying to apply')
 
         console.log(isEmailVerified)
 
