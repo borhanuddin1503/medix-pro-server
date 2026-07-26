@@ -23,7 +23,7 @@ await dbConnect();
 app.use('/auth', authRoutes);
 
 // dotors routes
-app.use("/api/doctors/apply", doctorApplyRoutes);
+app.use("/api/doctors", doctorApplyRoutes);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!');

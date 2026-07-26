@@ -74,7 +74,7 @@ export async function whoMe(req: Request, res: Response) {
 
 
 
-
+// google login
 export async function LoginWithGoogle(req: Request, res: Response) {
     try {
         const { googleId, email, name, image, isVerified } = req.body;
