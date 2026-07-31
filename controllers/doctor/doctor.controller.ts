@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import DoctorsApply from "../../models/doctor/apply_doctor.model.ts";
 import { ObjectId } from "mongodb";
+import { Types, type PipelineStage } from "mongoose";
 
 export async function applyDoctor(req: Request, res: Response) {
     try {
@@ -68,139 +69,174 @@ export async function applyDoctor(req: Request, res: Response) {
 
 
 // get doctor by search or single doctor
-export async function getDoctors(req: Request, res: Response) {
+
+export const getDoctors = async (req: Request, res: Response) => {
     try {
         const {
             doctorId,
             search,
             specialization,
             page = "1",
-            limit = "10",
+            limit = "8",
         } = req.query;
 
+        const currentPage = Math.max(1, Number(page) || 1);
+        const itemsPerPage = Math.max(1, Number(limit) || 8);
+        const skip = (currentPage - 1) * itemsPerPage;
 
         // =========================
-        // Single Doctor
+        // Match Stage
         // =========================
+        const match: any = {
+            isApproved: true,
+        };
 
         if (doctorId) {
-            const doctor = await DoctorsApply.findOne({
-                _id: new ObjectId(doctorId.toString()),
-                isApproved: true,
-            }).populate(
-                "userId",
-                "email"
+            if (!Types.ObjectId.isValid(doctorId.toString())) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid doctor id",
+                });
+            }
+
+            match._id = new Types.ObjectId(doctorId.toString());
+        }
+
+        if (specialization) {
+            match.specialization = {
+                $regex: specialization.toString(),
+                $options: "i",
+            };
+        }
+
+        if (search) {
+            match.$or = [
+                {
+                    name: {
+                        $regex: search.toString(),
+                        $options: "i",
+                    },
+                },
+                {
+                    specialization: {
+                        $regex: search.toString(),
+                        $options: "i",
+                    },
+                },
+            ];
+        }
+
+        // =========================
+        // Aggregation Pipeline
+        // =========================
+        const pipeline: PipelineStage[] = [
+            {
+                $match: match,
+            },
+            {
+                $lookup: {
+                    from: "user-datas",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "user",
+                },
+            },
+            {
+                $unwind: "$user",
+            },
+            {
+                $project: {
+                    _id: 1,
+                    userId: 1,
+
+                    name: 1,
+                    email: "$user.email",
+                    profileImage: 1,
+
+                    specialization: 1,
+                    experience: 1,
+                    fees: 1,
+
+                    availableDays: 1,
+                    availableTime: 1,
+
+                    chamber: 1,
+                    bio: 1,
+                    degree: 1,
+                    licenseNumber: 1,
+
+                    createdAt: 1,
+                },
+            },
+        ];
+
+        // Single doctor হলে pagination লাগবে না
+        if (!doctorId) {
+            pipeline.push(
+                {
+                    $sort: {
+                        createdAt: 1,
+                    },
+                },
+                {
+                    $skip: skip,
+                },
+                {
+                    $limit: itemsPerPage,
+                }
             );
+        }
 
+        const [doctors, totalDoctors] = await Promise.all([
+            DoctorsApply.aggregate(pipeline),
+            DoctorsApply.countDocuments(match),
+        ]);
 
-            if (!doctor) {
+        // =========================
+        // Single Doctor Response
+        // =========================
+        if (doctorId) {
+            if (!doctors.length) {
                 return res.status(404).json({
                     success: false,
                     message: "Doctor not found",
                 });
             }
 
-
             return res.status(200).json({
                 success: true,
-                data: doctor,
+                data: {
+                    doctors,
+                },
             });
         }
 
-
         // =========================
-        // Search Doctors
+        // All Doctors Response
         // =========================
-
-        const currentPage = Number(page);
-        const itemsPerPage = Number(limit);
-
-        const skip = (currentPage - 1) * itemsPerPage;
-
-
-        const filter: any = {
-            isApproved: true,
-        };
-
-
-        // Search by name / specialization
-        if (search) {
-
-            filter.$or = [
-                {
-                    specialization: {
-                        $regex: search,
-                        $options: "i",
-                    },
-                },
-                {
-                    bio: {
-                        $regex: search,
-                        $options: "i",
-                    },
-                },
-                {
-                    name: {
-                        $regex: search,
-                        $option: "i",
-                    }
-                }
-            ];
-        }
-
-
-        // Filter by specialization
-        if (specialization) {
-
-            filter.specialization = {
-                $regex: specialization,
-                $options: "i",
-            };
-        }
-
-
-        const [doctors, totalDoctors] = await Promise.all([
-            DoctorsApply.find(filter)
-                .populate(
-                    "userId",
-                    " email "
-                )
-                .skip(skip)
-                .limit(itemsPerPage)
-                .sort({
-                    createdAt: -1,
-                }),
-
-            DoctorsApply.countDocuments(filter),
-
-        ]);
-
+        const totalPages = Math.ceil(totalDoctors / itemsPerPage);
 
         return res.status(200).json({
-
             success: true,
-
-            data: doctors,
-
-            pagination: {
-                currentPage,
-                itemsPerPage,
-                totalDoctors,
-                totalPages: Math.ceil(
-                    totalDoctors / itemsPerPage
-                ),
+            message: "Successfully fetched doctors",
+            data: {
+                doctors,
+                total: totalDoctors,
+                page: currentPage,
+                limit: itemsPerPage,
+                totalPages,
+                hasNextPage: currentPage < totalPages,
+                hasPrevPage: currentPage > 1,
             },
-
         });
-
-
     } catch (error) {
-
         console.error("Get doctors error:", error);
 
         return res.status(500).json({
             success: false,
             message: "Failed to fetch doctors",
+            error: error instanceof Error ? error.message : error,
         });
     }
-}
+};
+

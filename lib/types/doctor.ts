@@ -1,4 +1,4 @@
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 export interface IDoctorApply {
     userId: Types.ObjectId;
@@ -24,4 +24,40 @@ export interface IDoctorApply {
     createdAt?: Date;
     updatedAt?: Date;
     name: string;
+}
+
+
+
+export interface IAppointment extends Document {
+
+    doctorId: mongoose.Types.ObjectId;
+
+    patientId: mongoose.Types.ObjectId;
+
+    patientName: string;
+
+    phone: string;
+
+    email: string;
+
+    appointmentDate: string;
+
+    reason?: string;
+
+
+    status:
+    | "PENDING"
+    | "CONFIRMED"
+    | "COMPLETED"
+    | "CANCELLED";
+
+
+    paymentStatus:
+    | "UNPAID"
+    | "PAID"
+    | "REFUNDED";
+
+
+    createdAt: Date;
+    updatedAt: Date;
 }

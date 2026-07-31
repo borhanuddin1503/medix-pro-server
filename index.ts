@@ -2,9 +2,9 @@ import express, { type Express, type Request, type Response } from 'express';
 import { envConfig } from './lib/env-config.ts';
 import cors from 'cors'
 import dbConnect from './lib/dbConnect.ts';
-import { createAuth } from './lib/auth.ts';
 import authRoutes from './routes/auth.routes.ts'
 import doctorApplyRoutes from './routes/doctor.route.ts'
+import appoinments from './routes/appoinments.route.ts'
 envConfig();
 
 const app: Express = express();
@@ -24,6 +24,9 @@ app.use('/auth', authRoutes);
 
 // dotors routes
 app.use("/api/doctors", doctorApplyRoutes);
+
+// appoinments routes
+app.use("/api/appointments", appoinments);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!');

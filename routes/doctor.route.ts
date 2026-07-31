@@ -10,6 +10,6 @@ router.post(
     applyDoctor
 );
 
-router.get('/' , getDoctors)
+router.get('/', getDoctors);
 
 export default router;

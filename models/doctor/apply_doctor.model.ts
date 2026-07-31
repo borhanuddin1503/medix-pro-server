@@ -4,7 +4,7 @@ import type { IDoctorApply } from "../../lib/types/doctor.ts";
 const doctorApplySchema = new Schema<IDoctorApply>({
     userId: {
         type: Schema.Types.ObjectId,
-        ref: "User",
+        ref: "user-datas",
         required: true,
     },
 
