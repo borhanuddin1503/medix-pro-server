@@ -1,8 +1,10 @@
-
 import DoctorsApply from "../../models/doctor/apply_doctor.model.ts";
 import { Appointment } from "../../models/appoinments/appoinments.model.ts";
 import type { Request, Response } from "express";
 import { Types } from "mongoose";
+import { stripe } from "../../utils/stripe.ts";
+
+
 
 
 export const bookAppointment = async (
@@ -18,7 +20,9 @@ export const bookAppointment = async (
             reason,
             patientName,
             phone,
-            email
+            email,
+            paymentMethod,
+            paymentIntentId,
         } = req.body;
 
 
@@ -36,14 +40,13 @@ export const bookAppointment = async (
         if (!doctorId || !date) {
             return res.status(400).json({
                 success: false,
-                message:
-                    "Doctor, date and time are required",
+                message: "Doctor and date are required",
             });
         }
 
 
 
-        // Check doctor
+        // Find doctor
         const doctor = await DoctorsApply.findOne({
             _id: doctorId,
             isApproved: true,
@@ -59,9 +62,11 @@ export const bookAppointment = async (
 
 
 
-        // Check available day
+        // Check doctor availability
 
         const selectedDate = new Date(date);
+
+        console.log('selected date', selectedDate);
 
         const dayName = selectedDate.toLocaleDateString(
             "en-US",
@@ -69,6 +74,8 @@ export const bookAppointment = async (
                 weekday: "long",
             }
         );
+
+        console.log('dayName', dayName);
 
 
         const isAvailable =
@@ -79,20 +86,20 @@ export const bookAppointment = async (
         if (!isAvailable) {
             return res.status(400).json({
                 success: false,
-                message:
-                    "Doctor is not available on this day",
+                message: "Doctor is not available on this day",
             });
         }
 
 
 
-        // Check duplicate booking
+
+        // Prevent duplicate booking
 
         const alreadyBooked =
             await Appointment.findOne({
                 doctorId,
                 appointmentDate: date,
-                patientId: new Types.ObjectId(patientId)
+                patientId: new Types.ObjectId(patientId),
             });
 
 
@@ -100,9 +107,56 @@ export const bookAppointment = async (
         if (alreadyBooked) {
             return res.status(409).json({
                 success: false,
-                message:
-                    "This slot is already booked",
+                message: "This appointment is already booked",
             });
+        }
+
+
+
+
+        // Payment verification
+
+        let paid = false;
+        let amount: number | undefined;
+        let currency: string | undefined;
+
+
+
+        if (paymentMethod === "ONLINE") {
+
+
+            if (!paymentIntentId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Payment information missing",
+                });
+            }
+
+
+
+            const paymentIntent =
+                await stripe.paymentIntents.retrieve(
+                    paymentIntentId
+                );
+
+
+                console.log('payment intent' , paymentIntent);
+
+
+            if (paymentIntent.status !== "succeeded") {
+                return res.status(400).json({
+                    success: false,
+                    message: "Payment not completed",
+                });
+            }
+
+
+
+            paid = true;
+
+            amount = paymentIntent.amount;
+
+            currency = paymentIntent.currency;
         }
 
 
@@ -120,15 +174,26 @@ export const bookAppointment = async (
 
                 phone,
 
+                email,
+
                 appointmentDate: date,
 
                 reason,
 
-                email,
-
                 status: "PENDING",
 
-                paymentStatus: "UNPAID",
+
+                paymentMethod,
+
+                paid,
+
+                paymentIntentId:
+                    paymentIntentId || null,
+
+                amount,
+
+                currency,
+
             });
 
 
@@ -137,8 +202,7 @@ export const bookAppointment = async (
 
             success: true,
 
-            message:
-                "Appointment booked successfully",
+            message: "Appointment booked successfully",
 
             data: {
 
@@ -147,6 +211,7 @@ export const bookAppointment = async (
 
                 date:
                     appointment.appointmentDate,
+
             },
 
         });
@@ -165,8 +230,7 @@ export const bookAppointment = async (
 
             success: false,
 
-            message:
-                "Failed to book appointment",
+            message: "Failed to book appointment",
 
         });
     }

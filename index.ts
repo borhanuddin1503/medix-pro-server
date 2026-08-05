@@ -5,6 +5,7 @@ import dbConnect from './lib/dbConnect.ts';
 import authRoutes from './routes/auth.routes.ts'
 import doctorApplyRoutes from './routes/doctor.route.ts'
 import appoinments from './routes/appoinments.route.ts'
+import payments from './routes/payment.route.ts'
 envConfig();
 
 const app: Express = express();
@@ -27,6 +28,9 @@ app.use("/api/doctors", doctorApplyRoutes);
 
 // appoinments routes
 app.use("/api/appointments", appoinments);
+
+// payment routes
+app.use("/api/payments", payments)
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!');

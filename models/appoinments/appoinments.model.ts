@@ -54,22 +54,31 @@ const appointmentSchema = new Schema<IAppointment>(
             ],
             default: "PENDING",
         },
-
-
-        paymentStatus: {
+        paymentMethod: {
             type: String,
-            enum: [
-                "UNPAID",
-                "PAID",
-                "REFUNDED",
-            ],
-            default: "UNPAID",
+            enum: ["ONLINE", "CASH"],
+            default: "CASH",
+            required: true,
         },
 
+        paid: {
+            type: Boolean,
+            default: false,
+        },
+        paymentIntentId: {
+            type: String,
+        },
+        amount: {
+            type: Number,
+        },
+        currency: {
+            type: String,
+        }
     },
     {
         timestamps: true,
-    }
+    },
+
 );
 
 

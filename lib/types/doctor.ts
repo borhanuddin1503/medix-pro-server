@@ -44,6 +44,16 @@ export interface IAppointment extends Document {
 
     reason?: string;
 
+    paymentMethod: string;
+
+    paid?: boolean;
+
+    paymentIntentId?: string;
+
+    amount?: number;
+
+    currency?: string;
+
 
     status:
     | "PENDING"

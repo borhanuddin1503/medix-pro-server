@@ -4,7 +4,7 @@ import { verifyRole } from "../middlewares/verifyRole.ts";
 
 const router = Router();
 
-router.post('/', verifyRole(['USER']), bookAppointment);
+router.post('/', verifyRole(['USER' ,'ADMIN']), bookAppointment);
 
 
 
