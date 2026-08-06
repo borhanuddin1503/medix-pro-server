@@ -259,6 +259,8 @@ export const getMyAppointments = async (
         }
 
 
+        console.log('appointment api hits ');
+
 
         // appoinments
         const [appointments, totalAppointments] = await Promise.all([
@@ -271,7 +273,6 @@ export const getMyAppointments = async (
                         "name profileImage specialization fees availableTime availableDays",
                 })
                 .sort({
-                    appointmentDate: -1,
                     createdAt: -1,
                 })
                 .skip(skip)
@@ -282,8 +283,6 @@ export const getMyAppointments = async (
             }),
         ]);
 
-        console.log('appointments', appointments);
-        console.log('totalAppointments', totalAppointments);
 
         return res.status(200).json({
             success: true,

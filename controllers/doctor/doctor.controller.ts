@@ -123,6 +123,12 @@ export const getDoctors = async (req: Request, res: Response) => {
                         $options: "i",
                     },
                 },
+                {
+                    bio: {
+                        $regex: search.toString(),
+                        $options: "i",
+                    },
+                },
             ];
         }
 

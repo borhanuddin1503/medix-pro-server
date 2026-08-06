@@ -518,7 +518,7 @@ export async function signIn(req: Request, res: Response) {
 
 
 
-
+// send otp for reset password
 export async function ForgotPassword(req: Request, res: Response) {
     try {
         const { email } = req.body;

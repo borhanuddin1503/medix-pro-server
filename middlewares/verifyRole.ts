@@ -28,7 +28,6 @@ export const verifyRole = (roles: string[]) => {
             // Database থেকে user খুঁজে বের করা
             const userInfo = await User.findById(decoded.userId);
 
-            console.log('user info from middleware', userInfo);
 
             if (!userInfo) {
                 return res.status(401).json({
