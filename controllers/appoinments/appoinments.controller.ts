@@ -3,10 +3,11 @@ import { Appointment } from "../../models/appoinments/appoinments.model.ts";
 import type { Request, Response } from "express";
 import { Types } from "mongoose";
 import { stripe } from "../../utils/stripe.ts";
+import { ObjectId } from "mongodb";
 
 
 
-
+// book appoinment
 export const bookAppointment = async (
     req: Request,
     res: Response
@@ -140,7 +141,7 @@ export const bookAppointment = async (
                 );
 
 
-                console.log('payment intent' , paymentIntent);
+            console.log('payment intent', paymentIntent);
 
 
             if (paymentIntent.status !== "succeeded") {
@@ -232,6 +233,77 @@ export const bookAppointment = async (
 
             message: "Failed to book appointment",
 
+        });
+    }
+};
+
+
+
+
+// get appoinments
+export const getMyAppointments = async (
+    req: Request,
+    res: Response
+) => {
+    try {
+        const patientId = req.user?._id;
+        const { page = 1, limit = 5 } = req.query;
+
+        const skip = (Number(page) - 1) * Number(limit);
+
+        if (!patientId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized user",
+            });
+        }
+
+
+
+        // appoinments
+        const [appointments, totalAppointments] = await Promise.all([
+            Appointment.find({
+                patientId: new Types.ObjectId(patientId),
+            })
+                .populate({
+                    path: "doctorId",
+                    select:
+                        "name profileImage specialization fees availableTime availableDays",
+                })
+                .sort({
+                    appointmentDate: -1,
+                    createdAt: -1,
+                })
+                .skip(skip)
+                .limit(Number(limit)),
+
+            Appointment.countDocuments({
+                patientId: new Types.ObjectId(patientId),
+            }),
+        ]);
+
+        console.log('appointments', appointments);
+        console.log('totalAppointments', totalAppointments);
+
+        return res.status(200).json({
+            success: true,
+            message: "Appointments fetched successfully",
+            data: appointments,
+            pagination: {
+                page: Number(page),
+                limit: Number(limit),
+                total: totalAppointments,
+                totalPages: Math.ceil(totalAppointments / Number(limit)),
+                hasNextPage: Number(page) < Math.ceil(totalAppointments / Number(limit)),
+                hasPrevPage: Number(page) > 1,
+            },
+        });
+    } catch (error) {
+        console.error("Get appointments error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch appointments",
         });
     }
 };

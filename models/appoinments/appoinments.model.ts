@@ -5,7 +5,7 @@ const appointmentSchema = new Schema<IAppointment>(
     {
         doctorId: {
             type: Schema.Types.ObjectId,
-            ref: "DoctorsApply",
+            ref: "DoctorApplication",
             required: true,
         },
 
