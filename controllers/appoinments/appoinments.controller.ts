@@ -155,7 +155,7 @@ export const bookAppointment = async (
 
             paid = true;
 
-            amount = paymentIntent.amount;
+            amount = paymentIntent.amount / 100;
 
             currency = paymentIntent.currency;
         }

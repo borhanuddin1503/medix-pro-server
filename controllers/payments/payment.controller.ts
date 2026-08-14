@@ -35,6 +35,7 @@ export const createPaymentIntent = async (
                 },
             });
 
+
         return res.status(200).json({
             success: true,
             clientSecret: paymentIntent.client_secret,
