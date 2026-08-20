@@ -36,8 +36,22 @@ export interface IAdminDashboardData {
     pendingDoctors: unknown[];
 }
 
-export interface AdminDashboardResponse {
+export interface AdminDashboardResponse<T> {
     success: boolean;
     message: string;
-    data: IAdminDashboardData;
+    data?: T;
 }
+export interface UpdateDoctorRes {
+    acknowledged: boolean,
+    matchedCount: number,
+    modifiedCount: number
+
+}
+export interface DeleteDoctorRes {
+    acknowledged: boolean;
+    deletedCount: number;
+
+}
+
+
+

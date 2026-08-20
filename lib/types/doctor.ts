@@ -20,6 +20,7 @@ export interface IDoctorApply {
     bio?: string;
     licenseNumber: string;
     isApproved: boolean;
+    isActive: boolean
 
     createdAt?: Date;
     updatedAt?: Date;

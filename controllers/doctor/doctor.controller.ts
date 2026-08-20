@@ -82,7 +82,7 @@ export const getDoctors = async (req: Request, res: Response) => {
 
 
 
-        console.log('doctorId from server' , doctorId)
+        console.log('doctorId from server', doctorId)
 
         const currentPage = Math.max(1, Number(page) || 1);
         const itemsPerPage = Math.max(1, Number(limit) || 8);
@@ -97,6 +97,7 @@ export const getDoctors = async (req: Request, res: Response) => {
 
         if (req.user?.role !== "ADMIN") {
             match.isApproved = true;
+            match.isActive = true;
         }
 
         if (doctorId) {
@@ -170,7 +171,7 @@ export const getDoctors = async (req: Request, res: Response) => {
                     specialization: 1,
                     experience: 1,
                     fees: 1,
-                    isApproved: 1 ,
+                    isApproved: 1,
 
                     availableDays: 1,
                     availableTime: 1,
@@ -186,13 +187,20 @@ export const getDoctors = async (req: Request, res: Response) => {
             },
         ];
 
+
+        const sort: { createdAt: 1 | -1 } = {
+            createdAt: 1,
+        };
+
+        if (req.user?.role === "ADMIN") {
+            sort.createdAt = -1;
+        }
+
         // Single doctor হলে pagination লাগবে না
         if (!doctorId) {
             pipeline.push(
                 {
-                    $sort: {
-                        createdAt: 1,
-                    },
+                    $sort: sort
                 },
                 {
                     $skip: skip,

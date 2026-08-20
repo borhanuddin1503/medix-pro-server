@@ -2,12 +2,14 @@ import type { Request, Response } from "express";
 
 import DoctorsApply from "../../models/doctor/apply_doctor.model.ts";
 import { Appointment } from "../../models/appoinments/appoinments.model.ts";
-import type { AdminDashboardResponse } from "../../lib/types/admin.ts";
+import type { AdminDashboardResponse, DeleteDoctorRes, IAdminDashboardData, UpdateDoctorRes } from "../../lib/types/admin.ts";
+import { Types } from "mongoose";
+import { ObjectId } from "mongodb";
 
 
 export const getAdminDashboard = async (
     req: Request,
-    res: Response<AdminDashboardResponse>
+    res: Response<AdminDashboardResponse<IAdminDashboardData>>
 ) => {
     try {
         const today = new Date()
@@ -238,6 +240,9 @@ interface AppointmentAnalyticsResponse {
     };
 }
 
+
+
+// admin analytistics
 export const getAppointmentAnalytics = async (
     req: Request,
     res: Response<AppointmentAnalyticsResponse>
@@ -539,7 +544,7 @@ export const getAppointmentAnalytics = async (
         // Format specialization
         // ----------------------------------------
 
-        console.log('specialiazation data' , bySpecialization)
+        console.log('specialiazation data', bySpecialization)
 
         const specializationData =
             bySpecialization.map((item) => ({
@@ -592,6 +597,179 @@ export const getAppointmentAnalytics = async (
 
                 bySpecialization: [],
             },
+        });
+    }
+};
+
+
+
+
+// doctors  apis for admin
+export const updateDoctorsStatus = async (
+    req: Request<{ id: string }>,
+    res: Response<AdminDashboardResponse<UpdateDoctorRes>>
+) => {
+    try {
+
+        const { id }: { id: string } = req.params;
+        const { isApproved, isActive } = req.body;
+
+        console.log('update route hits and id is', id);
+
+        // =========================
+        // Validate Doctor ID
+        // =========================
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid doctor id",
+            });
+        }
+
+        // =========================
+        // Validate Request Body
+        // =========================
+        if (
+            typeof isApproved !== "boolean" &&
+            typeof isActive !== "boolean"
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "No valid status provided",
+            });
+        }
+
+        // =========================
+        // Build Update
+        // =========================
+        const updateData: Partial<{
+            isApproved: boolean;
+            isActive: boolean;
+        }> = {};
+
+        if (typeof isApproved === "boolean") {
+            updateData.isApproved = isApproved;
+        }
+
+        if (typeof isActive === "boolean") {
+            updateData.isActive = isActive;
+        }
+
+        // =========================
+        // Update Doctor
+        // =========================
+        const result = await DoctorsApply.updateOne(
+            {
+                _id: new ObjectId(id),
+            },
+            {
+                $set: updateData,
+            }
+        );
+
+        // =========================
+        // Doctor Not Found
+        // =========================
+        if (result.matchedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Doctor not found",
+            });
+        }
+
+        // =========================
+        // Nothing Changed
+        // =========================
+        if (result.modifiedCount === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Doctor status is already up to date",
+            });
+        }
+
+
+        console.log('result', result)
+
+        // =========================
+        // Success
+        // =========================
+        return res.status(200).json({
+            success: true,
+            message: "Doctor status updated successfully",
+            data: {
+                ...result,
+            },
+        });
+
+    } catch (error) {
+        console.error(
+            "Update doctor status error:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update doctor status",
+        });
+    }
+};
+
+
+
+// delete doctor
+
+export const deleteDoctor = async (
+    req: Request<{ id: string }>,
+    res: Response<AdminDashboardResponse<DeleteDoctorRes>>
+) => {
+    try {
+        const { id } = req.params;
+
+        // =========================
+        // Validate Doctor ID
+        // =========================
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid doctor id",
+            });
+        }
+
+        // =========================
+        // Delete Doctor
+        // =========================
+        const result = await DoctorsApply.deleteOne({
+            _id: new ObjectId(id),
+        });
+
+        // =========================
+        // Doctor Not Found
+        // =========================
+        if (result.deletedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Doctor not found",
+            });
+        }
+
+        // =========================
+        // Success
+        // =========================
+        return res.status(200).json({
+            success: true,
+            message: "Doctor deleted successfully",
+            data: {
+                acknowledged: result.acknowledged,
+                deletedCount: result.deletedCount,
+            },
+        });
+
+    } catch (error) {
+        console.error("Delete doctor error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to delete doctor",
         });
     }
 };

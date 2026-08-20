@@ -35,7 +35,7 @@ app.use("/api/payments", payments)
 
 
 // dashboard routes
-app.use("/api" , dashboard)
+app.use("/api/admin" , dashboard)
 
 
 app.get('/', (req: Request, res: Response) => {

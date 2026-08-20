@@ -54,6 +54,11 @@ const doctorApplySchema = new Schema<IDoctorApply>({
         default: false,
     },
 
+    isActive: {
+        type: Boolean,
+        default: false,
+    },
+
     name: String,
 },
     {
