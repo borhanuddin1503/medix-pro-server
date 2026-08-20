@@ -6,10 +6,11 @@ const router = Router();
 
 router.post(
     "/apply",
-    verifyRole(['USER', 'PATIENT']),
+    verifyRole(['USER', 'PATIENT', 'ADMIN']),
     applyDoctor
 );
 
 router.get('/', getDoctors);
+router.get('/admin', verifyRole(['ADMIN']), getDoctors);
 
 export default router;

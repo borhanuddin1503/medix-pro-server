@@ -442,6 +442,7 @@ export const getAppointmentAnalytics = async (
             // Appointments by specialization
             // ------------------------------------
             Appointment.aggregate([
+                // 1. Date range
                 {
                     $match: {
                         appointmentDate: {
@@ -451,9 +452,25 @@ export const getAppointmentAnalytics = async (
                     },
                 },
 
+                // 2. Appointment থেকে Doctor খুঁজে বের করা
+                {
+                    $lookup: {
+                        from: "doctorapplications",
+                        foreignField: '_id',
+                        localField: 'doctorId',
+                        as: "doctor",
+                    },
+                },
+
+                // 3. Array থেকে doctor object বের করা
+                {
+                    $unwind: "$doctor",
+                },
+
+                // 4. Specialization অনুযায়ী group
                 {
                     $group: {
-                        _id: "$specialization",
+                        _id: "$doctor.specialization",
 
                         count: {
                             $sum: 1,
@@ -461,16 +478,18 @@ export const getAppointmentAnalytics = async (
                     },
                 },
 
+                // 5. বেশি appointment আগে
                 {
                     $sort: {
                         count: -1,
                     },
                 },
 
+                // 6. Top 10
                 {
                     $limit: 10,
                 },
-            ]),
+            ])
         ]);
 
         // ----------------------------------------
@@ -519,6 +538,8 @@ export const getAppointmentAnalytics = async (
         // ----------------------------------------
         // Format specialization
         // ----------------------------------------
+
+        console.log('specialiazation data' , bySpecialization)
 
         const specializationData =
             bySpecialization.map((item) => ({

@@ -80,6 +80,10 @@ export const getDoctors = async (req: Request, res: Response) => {
             limit = "8",
         } = req.query;
 
+
+
+        console.log('doctorId from server' , doctorId)
+
         const currentPage = Math.max(1, Number(page) || 1);
         const itemsPerPage = Math.max(1, Number(limit) || 8);
         const skip = (currentPage - 1) * itemsPerPage;
@@ -87,9 +91,13 @@ export const getDoctors = async (req: Request, res: Response) => {
         // =========================
         // Match Stage
         // =========================
-        const match: any = {
-            isApproved: true,
-        };
+        const match: any = {};
+
+        console.log(req.user?.email);
+
+        if (req.user?.role !== "ADMIN") {
+            match.isApproved = true;
+        }
 
         if (doctorId) {
             if (!Types.ObjectId.isValid(doctorId.toString())) {
@@ -162,6 +170,7 @@ export const getDoctors = async (req: Request, res: Response) => {
                     specialization: 1,
                     experience: 1,
                     fees: 1,
+                    isApproved: 1 ,
 
                     availableDays: 1,
                     availableTime: 1,
@@ -172,6 +181,7 @@ export const getDoctors = async (req: Request, res: Response) => {
                     licenseNumber: 1,
 
                     createdAt: 1,
+                    isActive: 1,
                 },
             },
         ];

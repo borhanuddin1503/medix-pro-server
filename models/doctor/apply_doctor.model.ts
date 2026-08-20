@@ -61,5 +61,5 @@ const doctorApplySchema = new Schema<IDoctorApply>({
     });
 
 
-const DoctorsApply = model<IDoctorApply>("DoctorApplication", doctorApplySchema);
+const DoctorsApply = model<IDoctorApply>("Doctorapplication", doctorApplySchema);
 export default DoctorsApply;
