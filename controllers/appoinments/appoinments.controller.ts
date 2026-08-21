@@ -67,7 +67,7 @@ export const bookAppointment = async (
 
         const selectedDate = new Date(date);
 
-        console.log('selected date', selectedDate);
+        console.log('selected date', selectedDate, 'now', new Date());
 
         const dayName = selectedDate.toLocaleDateString(
             "en-US",
@@ -77,10 +77,12 @@ export const bookAppointment = async (
         );
 
         console.log('dayName', dayName);
+        console.log('available days', doctor.availableDays)
 
 
-        const isAvailable =
-            doctor.availableDays.includes(dayName);
+        const isAvailable = doctor.availableDays.some(
+            (day) => day.toLowerCase() === dayName.toLowerCase()
+        );
 
 
 

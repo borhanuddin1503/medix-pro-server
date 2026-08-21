@@ -1,3 +1,4 @@
+import type { Types } from "mongoose";
 import type { IAppointment } from "./doctor.ts";
 
 export interface IAppointmentStats {
@@ -51,6 +52,33 @@ export interface DeleteDoctorRes {
     acknowledged: boolean;
     deletedCount: number;
 
+}
+
+
+export interface Patient {
+    _id: Types.ObjectId;
+    name: string;
+    email: string;
+    phone: string;
+    totalAppointments: number;
+    successfulAppointments: number;
+    lastAppointmentDate: string;
+}
+
+
+export interface Pagination {
+    currentPage: number;
+    limit: number;
+    totalPatients: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+}
+
+
+export interface PatientsResponse {
+    patients: Patient[];
+    pagination: Pagination;
 }
 
 

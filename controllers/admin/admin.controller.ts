@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 
 import DoctorsApply from "../../models/doctor/apply_doctor.model.ts";
 import { Appointment } from "../../models/appoinments/appoinments.model.ts";
-import type { AdminDashboardResponse, DeleteDoctorRes, IAdminDashboardData, UpdateDoctorRes } from "../../lib/types/admin.ts";
+import type { AdminDashboardResponse, DeleteDoctorRes, IAdminDashboardData, PatientsResponse, UpdateDoctorRes } from "../../lib/types/admin.ts";
 import { Types } from "mongoose";
 import { ObjectId } from "mongodb";
 
@@ -770,6 +770,178 @@ export const deleteDoctor = async (
         return res.status(500).json({
             success: false,
             message: "Failed to delete doctor",
+        });
+    }
+};
+
+
+
+// get patients
+export const getAllPatients = async (
+    req: Request,
+    res: Response<AdminDashboardResponse<PatientsResponse>>
+) => {
+    try {
+        const page = Math.max(
+            Number(req.query.page) || 1,
+            1
+        );
+        const limit = Math.min(Math.max(
+            Number(req.query.limit) || 1,
+            1
+        ), 20);
+
+
+        const skip = (page - 1) * limit;
+
+        const search =
+            (req.query.search as string)?.trim() || "";
+
+        const matchStage: any = {};
+
+        if (search) {
+            matchStage.$or = [
+                {
+                    patientName: {
+                        $regex: search,
+                        $options: "i",
+                    },
+                },
+                {
+                    email: {
+                        $regex: search,
+                        $options: "i",
+                    },
+                },
+                {
+                    phone: {
+                        $regex: search,
+                        $options: "i",
+                    },
+                },
+            ];
+        }
+
+        const patients = await Appointment.aggregate([
+            // 1. Search
+            {
+                $match: matchStage,
+            },
+
+            // 2. Patient অনুযায়ী group
+            {
+                $group: {
+                    _id: "$patientId",
+
+                    name: {
+                        $first: "$patientName",
+                    },
+
+                    email: {
+                        $first: "$email",
+                    },
+
+                    phone: {
+                        $first: "$phone",
+                    },
+
+                    totalAppointments: {
+                        $sum: 1,
+                    },
+
+                    successfulAppointments: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $eq: [
+                                        "$status",
+                                        "COMPLETED",
+                                    ],
+                                },
+                                1,
+                                0,
+                            ],
+                        },
+                    },
+
+                    lastAppointmentDate: {
+                        $max: "$appointmentDate",
+                    },
+                },
+            },
+
+            // 3. Pagination-এর আগে sort
+            {
+                $sort: {
+                    lastAppointmentDate: -1,
+                },
+            },
+
+            // 4. Pagination
+            {
+                $skip: skip,
+            },
+
+            {
+                $limit: limit,
+            },
+        ]);
+
+        // Total unique patients
+        const totalResult =
+            await Appointment.aggregate([
+                {
+                    $match: matchStage,
+                },
+
+                {
+                    $group: {
+                        _id: "$patientId",
+                    },
+                },
+
+                {
+                    $count: "total",
+                },
+            ]);
+
+        const totalPatients =
+            totalResult[0]?.total || 0;
+
+        const totalPages = Math.ceil(
+            totalPatients / limit
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Patients fetched successfully",
+
+            data: {
+                patients,
+
+                pagination: {
+                    currentPage: page,
+                    limit,
+                    totalPatients,
+                    totalPages,
+
+                    hasNextPage:
+                        page < totalPages,
+
+                    hasPreviousPage:
+                        page > 1,
+                },
+            },
+        });
+    } catch (error) {
+        console.error(
+            "Get all patients error:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch patients",
         });
     }
 };
