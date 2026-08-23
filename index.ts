@@ -6,7 +6,8 @@ import authRoutes from './routes/auth.routes.ts'
 import doctorApplyRoutes from './routes/doctor.route.ts'
 import appoinments from './routes/appoinments.route.ts'
 import payments from './routes/payment.route.ts'
-import dashboard from './routes/admin.routes.ts'
+import admin from './routes/admin.routes.ts'
+import shared from './routes/shared.route.ts'
 envConfig();
 
 const app: Express = express();
@@ -35,7 +36,10 @@ app.use("/api/payments", payments)
 
 
 // dashboard routes
-app.use("/api/admin" , dashboard)
+app.use("/api/admin" , admin)
+
+// dashboard routes
+app.use("/api/dashboard" , shared)
 
 
 app.get('/', (req: Request, res: Response) => {

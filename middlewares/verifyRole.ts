@@ -10,6 +10,7 @@ export const verifyRole = (roles: string[]) => {
     ) => {
         try {
             const accessToken = req.headers.authorization?.replace("Bearer ", "");
+            console.log('access token' , accessToken)
 
             if (!accessToken) {
                 return res.status(401).json({
@@ -18,16 +19,19 @@ export const verifyRole = (roles: string[]) => {
                 });
             }
 
+
+            console.log('decoding')
             const decoded = jwt.verify(
                 accessToken,
                 process.env.ACCESS_TOKEN_SECRET!
             ) as {
                 userId: string;
             };
+            console.log('decoded' , decoded)
 
             // Database থেকে user খুঁজে বের করা
             const userInfo = await User.findById(decoded.userId);
-
+            console.log('userrole' , userInfo?.role)
 
             if (!userInfo) {
                 return res.status(401).json({
