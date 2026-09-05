@@ -1,4 +1,5 @@
 import express, { type Express, type Request, type Response } from 'express';
+import  cookieParser  from 'cookie-parser';
 import { envConfig } from './lib/env-config.ts';
 import cors from 'cors'
 import dbConnect from './lib/dbConnect.ts';
@@ -8,6 +9,7 @@ import appoinments from './routes/appoinments.route.ts'
 import payments from './routes/payment.route.ts'
 import admin from './routes/admin.routes.ts'
 import shared from './routes/shared.route.ts'
+
 envConfig();
 
 const app: Express = express();
@@ -18,6 +20,7 @@ app.use(cors({
   credentials: true,
 }))
 app.use(express.json());
+app.use(cookieParser());
 
 await dbConnect();
 
@@ -36,10 +39,10 @@ app.use("/api/payments", payments)
 
 
 // dashboard routes
-app.use("/api/admin" , admin)
+app.use("/api/admin", admin)
 
 // dashboard routes
-app.use("/api/dashboard" , shared)
+app.use("/api/dashboard", shared)
 
 
 app.get('/', (req: Request, res: Response) => {

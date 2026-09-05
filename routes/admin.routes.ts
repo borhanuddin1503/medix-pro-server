@@ -1,7 +1,7 @@
 
 import { Router } from "express";
 import { verifyRole } from "../middlewares/verifyRole.ts";
-import { deleteDoctor, getAdminDashboard, getAllPatients, getAppointmentAnalytics, updateDoctorsStatus } from "../controllers/admin/admin.controller.ts";
+import { deleteDoctor, getAdminDashboard, getAllPatients, getAllUsers, getAppointmentAnalytics, updateDoctorsStatus, updateUserRole } from "../controllers/admin/admin.controller.ts";
 
 const router = Router();
 
@@ -33,6 +33,19 @@ router.get(
     "/patients",
     verifyRole(["ADMIN"]),
     getAllPatients
+);
+
+router.get(
+    "/users",
+    verifyRole(["ADMIN"]),
+    getAllUsers
+);
+
+
+router.patch(
+    "/users/:id/role",
+    verifyRole(["ADMIN"]),
+    updateUserRole
 );
 
 export default router;

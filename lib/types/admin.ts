@@ -66,7 +66,7 @@ export interface Patient {
 }
 
 
-export interface Pagination {
+export interface PatientPagination {
     currentPage: number;
     limit: number;
     totalPatients: number;
@@ -78,8 +78,28 @@ export interface Pagination {
 
 export interface PatientsResponse {
     patients: Patient[];
-    pagination: Pagination;
+    pagination: PatientPagination;
 }
 
 
+export interface IAdminUser {
+    _id: Types.ObjectId;
+    name: string;
+    email: string;
+    phone?: string;
+    isVerified: boolean;
+    image?: string;
+    role: "USER" | "ADMIN" | "DOCTOR" | "RECEPTIONIST" | "TECHNOLOGIST";
+    createdAt: Date;
+}
 
+
+export interface IGetAllUsersResponse {
+    users: IAdminUser[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+    };
+}

@@ -9,8 +9,17 @@ export const verifyRole = (roles: string[]) => {
         next: NextFunction
     ) => {
         try {
-            const accessToken = req.headers.authorization?.replace("Bearer ", "");
-            console.log('access token' , accessToken)
+
+            const authHeader = req.headers.authorization;
+
+            let accessToken: string | undefined;
+
+            if (authHeader?.startsWith("Bearer ")) {
+                accessToken = authHeader.split(" ")[1];
+            } else {
+                accessToken = req.cookies.access_token;
+            }
+
 
             if (!accessToken) {
                 return res.status(401).json({
@@ -20,18 +29,17 @@ export const verifyRole = (roles: string[]) => {
             }
 
 
-            console.log('decoding')
             const decoded = jwt.verify(
                 accessToken,
                 process.env.ACCESS_TOKEN_SECRET!
             ) as {
                 userId: string;
             };
+
             console.log('decoded' , decoded)
 
             // Database থেকে user খুঁজে বের করা
             const userInfo = await User.findById(decoded.userId);
-            console.log('userrole' , userInfo?.role)
 
             if (!userInfo) {
                 return res.status(401).json({
@@ -50,6 +58,8 @@ export const verifyRole = (roles: string[]) => {
 
             // Controller এ userInfo info use করার জন্য
             req.user = userInfo;
+
+            console.log('user info' , userInfo)
 
             next();
 

@@ -67,7 +67,6 @@ export const bookAppointment = async (
 
         const selectedDate = new Date(date);
 
-        console.log('selected date', selectedDate, 'now', new Date());
 
         const dayName = selectedDate.toLocaleDateString(
             "en-US",
@@ -76,8 +75,6 @@ export const bookAppointment = async (
             }
         );
 
-        console.log('dayName', dayName);
-        console.log('available days', doctor.availableDays)
 
 
         const isAvailable = doctor.availableDays.some(
@@ -143,7 +140,6 @@ export const bookAppointment = async (
                 );
 
 
-            console.log('payment intent', paymentIntent);
 
 
             if (paymentIntent.status !== "succeeded") {
@@ -261,7 +257,6 @@ export const getMyAppointments = async (
         }
 
 
-        console.log('appointment api hits ');
 
 
         // appoinments

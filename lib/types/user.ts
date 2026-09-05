@@ -22,7 +22,7 @@ export interface IUser {
     refreshToken?: string;
     refreshTokenExpiry?: Date;
 
-    role: "USER" | "ADMIN" | "DOCTOR" | "TECHNOLOGIST";
+    role: "USER" | "ADMIN" | "DOCTOR" | "TECHNOLOGIST" | "RECEPTIONIST";
 
     createdAt: Date;
     updatedAt: Date;

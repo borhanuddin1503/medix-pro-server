@@ -22,9 +22,10 @@ export async function whoMe(req: Request, res: Response) {
     try {
         const token = req.headers.authorization;
 
+        console.log('recieve request to who me')
+
 
         const accessToken = token?.split(" ")[1]; // "Bearer <token>" থেকে token আলাদা করা
-        console.log(accessToken)
 
         if (!accessToken) {
             return res.status(401).json({
@@ -33,13 +34,13 @@ export async function whoMe(req: Request, res: Response) {
             });
         }
 
-        let decodedData: { userId: string; email: string };
+        let decodedData: { userId: string; };
 
         try {
             decodedData = jwt.verify(
                 accessToken,
                 process.env.ACCESS_TOKEN_SECRET as string
-            ) as { userId: string; email: string };
+            ) as { userId: string };
         } catch (err) {
             // token invalid, expired, বা tampered
             return res.status(401).json({
@@ -47,6 +48,8 @@ export async function whoMe(req: Request, res: Response) {
                 message: "Invalid or expired token",
             });
         }
+
+        console.log('decoded data from who me', decodedData)
 
         const user = await User.findById(decodedData.userId).select(
             "-password -refreshToken -verificationToken -passwordResetToken"
@@ -78,6 +81,8 @@ export async function whoMe(req: Request, res: Response) {
 export async function LoginWithGoogle(req: Request, res: Response) {
     try {
         const { googleId, email, name, image, isVerified } = req.body;
+
+        console.log('google login request', googleId, email, name, image, isVerified)
 
         if (!email) {
             return res.status(400).json({
@@ -117,7 +122,7 @@ export async function LoginWithGoogle(req: Request, res: Response) {
         }
 
         // Access Token generate  (short-lived)
-        const accessToken = generateAccessToken((user._id).toString())
+        const accessToken = generateAccessToken((user._id).toString(), user.role);
 
         // Refresh Token generate  (long-lived)
         const refreshToken = generateRefreshToken((user._id).toString());
@@ -210,6 +215,7 @@ export async function registrationWithCredentials(req: Request, res: Response) {
             password: hashedPassword,
             provider: "credentials",
             isVerified: false,
+            role: 'USER',
             verificationCodeExpiary: new Date(Date.now() + 5 * 60 * 1000)
         });
 
@@ -233,7 +239,7 @@ export async function registrationWithCredentials(req: Request, res: Response) {
 
         // 6️⃣ Access + Refresh Token Generate করা (যদি signup এর পরই auto-login করাতে চাও)
         // Access Token generate  (short-lived)
-        const accessToken = generateAccessToken((newUser._id).toString())
+        const accessToken = generateAccessToken((newUser._id).toString(), newUser.role)
 
         // Refresh Token generate  (long-lived)
         const refreshToken = generateRefreshToken((newUser._id).toString());
@@ -287,10 +293,13 @@ export async function refreshToken(req: Request, res: Response) {
             userId: string;
         };
 
+        const user = await User.findById(decoded.userId);
+
         console.log('user id', decoded.userId)
 
         const newAccessToken = generateAccessToken(
-            decoded.userId
+            decoded.userId,
+            user?.role || "USER"
         );
 
 
@@ -486,7 +495,8 @@ export async function signIn(req: Request, res: Response) {
         }
 
         const accessToken = generateAccessToken(
-            user._id.toString()
+            user._id.toString(),
+            user.role
         );
 
         const refreshToken = generateRefreshToken(

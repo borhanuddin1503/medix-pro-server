@@ -10,6 +10,7 @@ export const getAppoinments = async (
     res: Response<IResponse<SharedAppointmentsResponse>>
 ) => {
     try {
+        console.log('get appoinments hittet')
         const page = Math.max(
             Number(req.query.page) || 1,
             1

@@ -2,15 +2,46 @@ import type { Request, Response } from "express";
 
 import DoctorsApply from "../../models/doctor/apply_doctor.model.ts";
 import { Appointment } from "../../models/appoinments/appoinments.model.ts";
-import type { AdminDashboardResponse, DeleteDoctorRes, IAdminDashboardData, PatientsResponse, UpdateDoctorRes } from "../../lib/types/admin.ts";
+import type { AdminDashboardResponse, DeleteDoctorRes, IAdminDashboardData, IGetAllUsersResponse, PatientsResponse, UpdateDoctorRes } from "../../lib/types/admin.ts";
 import { Types } from "mongoose";
 import { ObjectId } from "mongodb";
+import { User } from "../../models/user/user.model.ts";
+
+
+
+type AnalyticsRange = "7d" | "30d" | "3m" | "6m" | "1y";
+
+interface AppointmentAnalyticsResponse {
+    success: boolean;
+    message: string;
+    data: {
+        range: AnalyticsRange;
+        summary: {
+            total: number;
+            completed: number;
+            pending: number;
+            cancelled: number;
+        };
+        trend: {
+            date: string;
+            total: number;
+            completed: number;
+            pending: number;
+            cancelled: number;
+        }[];
+        bySpecialization: {
+            specialization: string;
+            count: number;
+        }[];
+    };
+}
 
 
 export const getAdminDashboard = async (
     req: Request,
     res: Response<AdminDashboardResponse<IAdminDashboardData>>
 ) => {
+    console.log('dashboard hited')
     try {
         const today = new Date()
             .toISOString()
@@ -208,37 +239,6 @@ export const getAdminDashboard = async (
         });
     }
 };
-
-
-
-
-
-type AnalyticsRange = "7d" | "30d" | "3m" | "6m" | "1y";
-
-interface AppointmentAnalyticsResponse {
-    success: boolean;
-    message: string;
-    data: {
-        range: AnalyticsRange;
-        summary: {
-            total: number;
-            completed: number;
-            pending: number;
-            cancelled: number;
-        };
-        trend: {
-            date: string;
-            total: number;
-            completed: number;
-            pending: number;
-            cancelled: number;
-        }[];
-        bySpecialization: {
-            specialization: string;
-            count: number;
-        }[];
-    };
-}
 
 
 
@@ -782,6 +782,8 @@ export const getAllPatients = async (
     res: Response<AdminDashboardResponse<PatientsResponse>>
 ) => {
     try {
+        console.log('get patients hited')
+        console.log('query', req.query)
         const page = Math.max(
             Number(req.query.page) || 1,
             1
@@ -912,6 +914,9 @@ export const getAllPatients = async (
             totalPatients / limit
         );
 
+
+        console.log('patients', patients)
+
         return res.status(200).json({
             success: true,
             message: "Patients fetched successfully",
@@ -942,6 +947,136 @@ export const getAllPatients = async (
         return res.status(500).json({
             success: false,
             message: "Failed to fetch patients",
+        });
+    }
+};
+
+
+
+
+// get all users
+export const getAllUsers = async (req: Request, res: Response<AdminDashboardResponse<IGetAllUsersResponse>>) => {
+    try {
+        const page = Math.max(Number(req.query.page) || 1, 1);
+        const limit = Math.min(Number(req.query.limit) || 10, 50);
+
+        const skip = (page - 1) * limit;
+
+        const search = (req.query.search as string)?.trim() || "";
+
+        const query: Record<string, any> = {};
+
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } },
+                { phone: { $regex: search, $options: "i" } },
+            ];
+        }
+
+        const [users, total] = await Promise.all([
+            User.find(query)
+                .select("name email phone isVerified image role createdAt")
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+
+            User.countDocuments(query),
+        ]);
+
+        return res.status(200).json({
+            success: true,
+            message: "Users retrieved successfully",
+            data: {
+                users,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit),
+                },
+            }
+        });
+    } catch (error) {
+        console.error("Get all users error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to retrieve users",
+        });
+    }
+};
+
+
+
+
+// update role
+const allowedRoles = [
+    "USER",
+    "ADMIN",
+    "RECEPTIONIST",
+    "TECHNOLOGIST",
+    "DOCTOR"
+] as const;
+
+type AssignableRole = (typeof allowedRoles)[number];
+
+export const updateUserRole = async (
+    req: Request,
+    res: Response
+) => {
+    try {
+        const { id } = req.params;
+        const { role } = req.body as {
+            role?: string;
+        };
+
+        // Validate role
+        if (!role || !allowedRoles.includes(role as AssignableRole)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid role",
+            });
+        }
+
+        // Find user
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        // Optional: prevent admin from changing their own role
+        if (req.user?._id?.toString() === id) {
+            return res.status(400).json({
+                success: false,
+                message: "You cannot change your own role",
+            });
+        }
+
+        // Update role
+        user.role = role as AssignableRole;
+
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "User role updated successfully",
+            data: {
+                userId: user._id,
+                role: user.role,
+            },
+        });
+    } catch (error) {
+        console.error("Update user role error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update user role",
         });
     }
 };
