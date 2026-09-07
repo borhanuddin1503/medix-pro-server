@@ -2,12 +2,13 @@ import type { Request, Response } from "express";
 import { stripe } from "../../utils/stripe.ts";
 import DoctorsApply from "../../models/doctor/apply_doctor.model.ts";
 import { ObjectId } from "mongodb";
+import type { IPaymentIntentResponse } from "../../lib/types/payment.ts";
 
 
 
 export const createPaymentIntent = async (
     req: Request,
-    res: Response
+    res: Response<IPaymentIntentResponse>
 ) => {
     try {
         const { doctorId } = req.body;
@@ -38,6 +39,7 @@ export const createPaymentIntent = async (
 
         return res.status(200).json({
             success: true,
+            message: 'Payment intent created successfully',
             clientSecret: paymentIntent.client_secret,
         });
     } catch (error) {

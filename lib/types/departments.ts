@@ -26,6 +26,13 @@ export interface IDepartmentRes {
         pagination: IdepartmentPagination;
     }
 }
+export interface IDepartmentUpdateRes {
+    success: boolean;
+    message: string;
+    data?: {
+        department: IDepartment;
+    }
+}
 
 export interface ICreateDepartmentRes {
     success: boolean;
@@ -33,4 +40,13 @@ export interface ICreateDepartmentRes {
     data?: {
         department: IDepartment;
     }
+}
+
+
+export interface IDeleteDepartmentRes {
+    success: boolean;
+    message: string;
+    data?: {
+        departmentId: string;
+    };
 }
