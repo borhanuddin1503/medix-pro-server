@@ -1,5 +1,5 @@
 import express, { type Express, type Request, type Response } from 'express';
-import  cookieParser  from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { envConfig } from './lib/env-config.ts';
 import cors from 'cors'
 import dbConnect from './lib/dbConnect.ts';
@@ -9,6 +9,7 @@ import appoinments from './routes/appoinments.route.ts'
 import payments from './routes/payment.route.ts'
 import admin from './routes/admin.routes.ts'
 import shared from './routes/shared.route.ts'
+import departments from './routes/departments.route.ts'
 
 envConfig();
 
@@ -44,6 +45,9 @@ app.use("/api/admin", admin)
 // dashboard routes
 app.use("/api/dashboard", shared)
 
+
+// departments routes
+app.use("/api/departments", departments);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!');

@@ -3,7 +3,15 @@ import DoctorsApply from "../../models/doctor/apply_doctor.model.ts";
 import { ObjectId } from "mongodb";
 import { Types, type PipelineStage } from "mongoose";
 
-export async function applyDoctor(req: Request, res: Response) {
+
+interface IDoctorApplyRes {
+    success: boolean;
+    message: string;
+    applicantId?: string;
+    code?: string;
+}
+
+export async function applyDoctor(req: Request, res: Response<IDoctorApplyRes>) {
     try {
         const information = req.body;
         const userId = req.user?._id;
@@ -59,7 +67,6 @@ export async function applyDoctor(req: Request, res: Response) {
         res.status(500).json({
             success: false,
             message: "Failed to apply as doctor",
-            error,
         });
     }
 }
