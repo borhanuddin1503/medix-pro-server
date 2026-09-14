@@ -10,6 +10,7 @@ import payments from './routes/payment.route.ts'
 import admin from './routes/admin.routes.ts'
 import shared from './routes/shared.route.ts'
 import departments from './routes/departments.route.ts'
+import labs from './routes/labs.routes.ts'
 
 envConfig();
 
@@ -45,9 +46,11 @@ app.use("/api/admin", admin)
 // dashboard routes
 app.use("/api/dashboard", shared)
 
-
 // departments routes
 app.use("/api/departments", departments);
+
+// labs routes
+app.use("/api/labs", labs);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!');

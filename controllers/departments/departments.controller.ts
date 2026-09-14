@@ -38,7 +38,7 @@ export const getAllDepartments = async (
         ]);
 
         const totalPages = Math.ceil(total / limit);
-
+        
         return res.status(200).json({
             success: true,
             message: "Departments fetched successfully",
