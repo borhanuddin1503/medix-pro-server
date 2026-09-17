@@ -163,7 +163,6 @@ export const addLab = async (req: Request, res: Response<ILabCreateRes>) => {
 
 
 // delete lab
-
 export const deleteLab = async (
     req: Request<{ id: string }>,
     res: Response<ILabDeleteRes>
@@ -202,6 +201,76 @@ export const deleteLab = async (
         return res.status(500).json({
             success: false,
             message: "Failed to delete lab",
+        });
+    }
+};
+
+
+// edit lab or update lab
+export const updateLab = async (
+    req: Request<{ id: string }>,
+    res: Response<ILabCreateRes>
+) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Lab ID is required",
+            });
+        }
+
+        const {
+            name,
+            description,
+            address,
+            phone,
+            email,
+            images,
+            services,
+            openingTime,
+            closingTime,
+        } = req.body;
+
+        const lab = await Lab.findById(id);
+
+        if (!lab) {
+            return res.status(404).json({
+                success: false,
+                message: "Lab not found",
+            });
+        }
+
+        // Update only provided fields
+        if (name !== undefined) lab.name = name;
+        if (description !== undefined)
+            lab.description = description;
+        if (address !== undefined) lab.address = address;
+        if (phone !== undefined) lab.phone = phone;
+        if (email !== undefined) lab.email = email;
+        if (images !== undefined) lab.images = images;
+        if (services !== undefined) lab.services = services;
+        if (openingTime !== undefined)
+            lab.openingTime = openingTime;
+        if (closingTime !== undefined)
+            lab.closingTime = closingTime;
+
+        const updatedLab = await lab.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Lab updated successfully",
+            data: {
+                lab: updatedLab,
+            },
+        });
+    } catch (error) {
+        console.error("Update lab error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update lab",
         });
     }
 };

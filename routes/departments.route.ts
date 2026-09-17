@@ -6,9 +6,9 @@ const router = Router();
 
 // Define your department routes here
 router.get("/", getAllDepartments);
-router.post("/", verifyRole(['ADMIN']), createDepartment);
-router.patch("/:_id", verifyRole(['ADMIN']), updateDepartment);
-router.delete("/:_id", verifyRole(['ADMIN']), deleteDepartment);
+router.post("/", verifyRole(['ADMIN', 'RECEPTIONIST']), createDepartment);
+router.patch("/:_id", verifyRole(['ADMIN', 'RECEPTIONIST']), updateDepartment);
+router.delete("/:_id", verifyRole(['ADMIN', 'RECEPTIONIST']), deleteDepartment);
 
 
 export default router;

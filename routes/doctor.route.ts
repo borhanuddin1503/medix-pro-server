@@ -11,6 +11,6 @@ router.post(
 );
 
 router.get('/', getDoctors);
-router.get('/admin', verifyRole(['ADMIN']), getDoctors);
+router.get('/admin', verifyRole(['ADMIN' , 'RECEPTIONIST']), getDoctors);
 
 export default router;

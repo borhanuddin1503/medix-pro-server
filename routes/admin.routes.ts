@@ -7,13 +7,13 @@ const router = Router();
 
 router.get(
     "/dashboard",
-    verifyRole(["ADMIN"]),
+    verifyRole(["ADMIN", "RECEPTIONIST"]),
     getAdminDashboard
 );
 
 router.get(
     "/dashboard/appointment-analytics",
-    verifyRole(["ADMIN"]),
+    verifyRole(["ADMIN", "RECEPTIONIST"]),
     getAppointmentAnalytics
 );
 
@@ -31,7 +31,7 @@ router.delete(
 
 router.get(
     "/patients",
-    verifyRole(["ADMIN"]),
+    verifyRole(["ADMIN", "RECEPTIONIST"]),
     getAllPatients
 );
 

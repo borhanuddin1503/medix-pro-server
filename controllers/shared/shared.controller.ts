@@ -217,7 +217,7 @@ export const updateAppointment = async (
             });
         }
 
-       
+
 
         const updateData: {
             status?: IAppointment["status"];
@@ -263,9 +263,8 @@ export const updateAppointment = async (
             updateData.paid = paid;
         }
 
-        // =========================
+
         // Update appointment
-        // =========================
         const appointment =
             await Appointment.findByIdAndUpdate(
                 appointmentId,
