@@ -696,3 +696,92 @@ export const resetPassword = async (req: Request, res: Response) => {
         });
     }
 };
+
+
+
+// update profile info .
+export const updateProfile = async (
+    req: Request,
+    res: Response
+) => {
+    try {
+        const userId = req.user?._id;
+
+        console.log('user id from profile update', userId)
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized. User information not found.",
+            });
+        }
+
+        const { name, image } = req.body;
+        console.log('name and image from profile update', name, image)
+
+        // Required validation
+        if (!name?.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Name is required.",
+            });
+        }
+
+        if (!image?.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Profile image is required.",
+            });
+        }
+
+        // Find current user
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found.",
+            });
+        }
+
+        // Check if anything actually changed
+        const nameChanged = user.name !== name.trim();
+        const imageChanged = user.image !== image.trim();
+
+        if (!nameChanged && !imageChanged) {
+            return res.status(400).json({
+                success: false,
+                message: "No changes detected.",
+            });
+        }
+
+        // Update only allowed fields
+        user.name = name.trim();
+        user.image = image.trim();
+
+        const updatedUser = await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully.",
+            data: {
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                image: updatedUser.image,
+                role: updatedUser.role,
+                isVerified: updatedUser.isVerified,
+                provider: updatedUser.provider,
+                googleId: updatedUser.googleId,
+                createdAt: updatedUser.createdAt,
+                updatedAt: updatedUser.updatedAt,
+            },
+        });
+    } catch (error) {
+        console.error("Update profile error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update profile.",
+        });
+    }
+};

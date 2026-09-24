@@ -54,5 +54,7 @@ export interface AppointmentPagination {
 export interface SharedAppointmentsResponse {
     appointments: SharedAppointment[];
     pagination: AppointmentPagination;
+    paidAppoinments: number;
+    unPaidAppoinments: number;
 }
 

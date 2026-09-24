@@ -66,7 +66,7 @@ export const getAppoinments = async (
                 );
         }
 
-        const [appointments, totalAppointments] =
+        const [appointments, totalAppointments, paidAppoinments, unPaidAppoinments] =
             await Promise.all([
                 Appointment.aggregate([
                     // 1. Search + doctor filter
@@ -147,7 +147,13 @@ export const getAppoinments = async (
                 ]),
 
                 Appointment.countDocuments(
-                    matchStage
+                    {}
+                ),
+                Appointment.countDocuments(
+                    { paid: true }
+                ),
+                Appointment.countDocuments(
+                    { paid: false }
                 ),
             ]);
 
@@ -176,6 +182,9 @@ export const getAppoinments = async (
                     hasPreviousPage:
                         page > 1,
                 },
+
+                paidAppoinments,
+                unPaidAppoinments
             },
         });
     } catch (error) {

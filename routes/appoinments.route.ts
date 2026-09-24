@@ -4,8 +4,8 @@ import { verifyRole } from "../middlewares/verifyRole.ts";
 
 const router = Router();
 
-router.post('/', verifyRole(['USER' ,'ADMIN' , 'DOCTOR' , 'RECEPTIONIST' , 'TECHNOLOGIST']), bookAppointment);
-router.get('/my-appointments', verifyRole(['USER' ,'ADMIN' , 'DOCTOR' , 'RECEPTIONIST' , 'TECHNOLOGIST']), getMyAppointments);
+router.post('/', verifyRole(['USER', 'ADMIN', 'DOCTOR', 'RECEPTIONIST', 'TECHNOLOGIST']), bookAppointment);
+router.get('/my-appointments', verifyRole(['USER', 'ADMIN', 'DOCTOR', 'RECEPTIONIST', 'TECHNOLOGIST']), getMyAppointments);
 
 
 
