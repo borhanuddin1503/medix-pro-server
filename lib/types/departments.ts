@@ -50,3 +50,10 @@ export interface IDeleteDepartmentRes {
         departmentId: string;
     };
 }
+export interface ISpecificDepartment {
+    success: boolean;
+    message: string;
+    data?: {
+        department: IDepartment
+    };
+}

@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { Departments } from "../../models/departments/departments.model.ts";
-import type { ICreateDepartmentRes, IDeleteDepartmentRes, IDepartmentRes, IDepartmentUpdateRes } from "../../lib/types/departments.ts";
+import type { ICreateDepartmentRes, IDeleteDepartmentRes, IDepartmentRes, IDepartmentUpdateRes, ISpecificDepartment } from "../../lib/types/departments.ts";
 
 // get deopartments
 export const getAllDepartments = async (
@@ -38,7 +38,7 @@ export const getAllDepartments = async (
         ]);
 
         const totalPages = Math.ceil(total / limit);
-        
+
         return res.status(200).json({
             success: true,
             message: "Departments fetched successfully",
@@ -195,4 +195,45 @@ export const deleteDepartment = async (
         });
     }
 };
+
+
+
+
+export async function getSpeceficDepartments(
+    req: Request,
+    res: Response<ISpecificDepartment>
+) {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Department ID is required",
+            });
+        }
+
+        const department = await Departments.findById(id);
+
+        if (!department) {
+            return res.status(404).json({
+                success: false,
+                message: "Department not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Department retrieved successfully",
+            data: {department},
+        });
+    } catch (error) {
+        console.error("Get specific department error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to retrieve department",
+        });
+    }
+}
 
