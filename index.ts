@@ -11,6 +11,7 @@ import admin from './routes/admin.routes.ts'
 import shared from './routes/shared.route.ts'
 import departments from './routes/departments.route.ts'
 import labs from './routes/labs.routes.ts'
+import reports from './routes/reports.routes.ts'
 
 envConfig();
 
@@ -51,6 +52,9 @@ app.use("/api/departments", departments);
 
 // labs routes
 app.use("/api/labs", labs);
+
+// reports routes
+app.use("/api/reports", reports);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!');

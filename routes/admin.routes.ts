@@ -7,7 +7,7 @@ const router = Router();
 
 router.get(
     "/dashboard",
-    verifyRole(["ADMIN", "RECEPTIONIST"]),
+    verifyRole(["ADMIN", "RECEPTIONIST" , "TECHNOLOGIST"]),
     getAdminDashboard
 );
 
