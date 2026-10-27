@@ -5,7 +5,7 @@ import { getAppoinments, updateAppointment } from "../controllers/shared/shared.
 const router = Router();
 
 
-router.get('/appointments', verifyRole(['ADMIN', 'RECEPTIONIST']), getAppoinments);
+router.get('/appointments', verifyRole(['ADMIN', 'RECEPTIONIST' , 'TECHNOLOGIST']), getAppoinments);
 router.patch('/appointments/status/:appointmentId', verifyRole(['ADMIN', 'RECEPTIONIST']), updateAppointment);
 
 

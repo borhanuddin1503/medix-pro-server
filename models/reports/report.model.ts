@@ -14,28 +14,13 @@ const reportSchema = new Schema<IReport>(
             required: true,
         },
 
-        patientId: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-
         doctorId: {
             type: Schema.Types.ObjectId,
             ref: "DoctorApplication",
             required: true,
         },
 
-        labId: {
-            type: Schema.Types.ObjectId,
-            ref: "Lab",
-            required: true,
-        },
         
-        technologistId: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-        },
         appointmentId: {
             type: Schema.Types.ObjectId,
             ref: "Appointment",

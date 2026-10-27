@@ -7,8 +7,6 @@ export interface IReport {
     image: string;
 
     doctorId: mongoose.Types.ObjectId;
-    patientId: mongoose.Types.ObjectId;
-    labId: mongoose.Types.ObjectId;
 
     reportType: string;
     appointmentId?: mongoose.Types.ObjectId;
@@ -25,4 +23,43 @@ export interface IReport {
 
     createdAt?: Date;
     updatedAt?: Date;
+}
+
+
+export interface ICreateReportResponse {
+    success: boolean;
+    message: string;
+    data?: {
+        _id: string;
+        name: string;
+        image: string;
+        doctorId: string;
+        patientId: string;
+        labId: string;
+        appointmentId: string;
+        reportType: string;
+        description?: string;
+        result?: string;
+        remarks?: string;
+        status: "PENDING" | "COMPLETED" | "CANCELLED";
+        testDate: string;
+        reportDate?: string;
+        technologistId: string;
+        createdAt: string;
+        updatedAt: string;
+    };
+}
+
+export interface IGetReportsResponse {
+    success: boolean;
+    message: string;
+    data?: {
+        reports: IReport[];
+        pagination?: {
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
+        };
+    };
 }

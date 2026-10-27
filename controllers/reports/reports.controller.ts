@@ -1,17 +1,16 @@
 import type { Request, Response } from "express";
 import Report from "../../models/reports/report.model.ts";
+import type { ICreateReportResponse, IGetReportsResponse } from "../../lib/types/reports.ts";
 
 export const createReport = async (
     req: Request,
-    res: Response
+    res: Response<ICreateReportResponse>
 ) => {
     try {
         const {
             name,
             image,
             doctorId,
-            patientId,
-            labId,
             appointmentId,
             reportType,
             description,
@@ -22,12 +21,13 @@ export const createReport = async (
             reportDate,
         } = req.body;
 
+
+        console.log("Request body:", req.body);
+
         if (
             !name ||
             !image ||
             !doctorId ||
-            !patientId ||
-            !labId ||
             !appointmentId ||
             !reportType ||
             !testDate
@@ -42,8 +42,6 @@ export const createReport = async (
             name,
             image,
             doctorId,
-            patientId,
-            labId,
             appointmentId,
             reportType,
             description,
@@ -52,8 +50,9 @@ export const createReport = async (
             status: status || "PENDING",
             testDate,
             reportDate,
-            technologistId: req.user?._id,
         });
+
+        console.log("Report created:", report);
 
         return res.status(201).json({
             success: true,
@@ -66,6 +65,53 @@ export const createReport = async (
         return res.status(500).json({
             success: false,
             message: "Failed to create report",
+        });
+    }
+};
+
+
+
+
+export const getReports = async (req: Request, res: Response<IGetReportsResponse>) => {
+    try {
+        const page = Math.max(1, Number(req.query.page) || 1);
+        const limit = Math.min(
+            100,
+            Math.max(1, Number(req.query.limit) || 10)
+        );
+        const search = req.query.search ? String(req.query.search) : "";
+
+        const skip = (page - 1) * limit;
+
+        const [reports, total] = await Promise.all([
+            Report.find({ name: { $regex: search, $options: "i" } })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+
+            Report.countDocuments(),
+        ]);
+
+        return res.status(200).json({
+            success: true,
+            message: "Reports fetched successfully",
+            data: {
+                reports,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit),
+                },
+            },
+        });
+    } catch (error) {
+        console.error("Failed to fetch reports:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch reports",
         });
     }
 };
